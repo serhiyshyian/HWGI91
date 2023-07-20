@@ -2,21 +2,19 @@ package com.goit.myproject;
 
 import java.util.Arrays;
 
-public class MyArrayList {
+public class MyArrayList<T> {
+    private static final int DEFAULT_CAPACITY = 10;
     private Object[] array;
     private int size;
 
     public MyArrayList() {
-        array = new Object[10];
+        array = new Object[DEFAULT_CAPACITY];
         size = 0;
     }
 
-    public void add(Object value) {
-
+    public void add(T value) {
         if (size == array.length) {
-            Object[] newArray = new Object[array.length * 2];
-            System.arraycopy(array, 0, newArray, 0, size);
-            array = newArray;
+            resizeArray();
         }
 
         array[size] = value;
@@ -25,7 +23,6 @@ public class MyArrayList {
 
     public void remove(int index) {
         if (index >= 0 && index < size) {
-
             System.arraycopy(array, index + 1, array, index, size - index - 1);
             array[size - 1] = null;
             size--;
@@ -35,7 +32,6 @@ public class MyArrayList {
     }
 
     public void clear() {
-
         Arrays.fill(array, null);
         size = 0;
     }
@@ -44,11 +40,17 @@ public class MyArrayList {
         return size;
     }
 
-    public Object get(int index) {
+    public T get(int index) {
         if (index >= 0 && index < size) {
-            return array[index];
+            return (T) array[index];
         } else {
             throw new IndexOutOfBoundsException("Invalid index");
         }
     }
+
+    private void resizeArray() {
+        int newCapacity = array.length * 2;
+        array = Arrays.copyOf(array, newCapacity);
+    }
 }
+

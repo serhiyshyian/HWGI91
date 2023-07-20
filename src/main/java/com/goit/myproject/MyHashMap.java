@@ -1,36 +1,37 @@
 package com.goit.myproject;
 
-public class MyHashMap {
+public class MyHashMap<K, V> {
     private static final int DEFAULT_CAPACITY = 16;
-
-    private Node[] buckets;
+    private Node<K, V>[] buckets;
     private int size;
 
-    private class Node {
-        private Object key;
-        private Object value;
-        private Node next;
+    @SuppressWarnings("unchecked")
+    private static class Node<K, V> {
+        private K key;
+        private V value;
+        private Node<K, V> next;
 
-        public Node(Object key, Object value) {
+        public Node(K key, V value) {
             this.key = key;
             this.value = value;
             this.next = null;
         }
     }
 
+    @SuppressWarnings("unchecked")
     public MyHashMap() {
         buckets = new Node[DEFAULT_CAPACITY];
         size = 0;
     }
 
-    public void put(Object key, Object value) {
+    public void put(K key, V value) {
         int index = getBucketIndex(key);
 
         if (buckets[index] == null) {
-            buckets[index] = new Node(key, value);
+            buckets[index] = new Node<>(key, value);
             size++;
         } else {
-            Node currentNode = buckets[index];
+            Node<K, V> currentNode = buckets[index];
             while (currentNode != null) {
                 if (currentNode.key.equals(key)) {
                     currentNode.value = value;
@@ -39,19 +40,23 @@ public class MyHashMap {
                 currentNode = currentNode.next;
             }
 
-            Node newNode = new Node(key, value);
+            Node<K, V> newNode = new Node<>(key, value);
             newNode.next = buckets[index];
             buckets[index] = newNode;
             size++;
         }
+
+        if (size >= buckets.length * 0.75) {
+            resizeArray();
+        }
     }
 
-    public void remove(Object key) {
+    public void remove(K key) {
         int index = getBucketIndex(key);
 
         if (buckets[index] != null) {
-            Node previousNode = null;
-            Node currentNode = buckets[index];
+            Node<K, V> previousNode = null;
+            Node<K, V> currentNode = buckets[index];
 
             while (currentNode != null) {
                 if (currentNode.key.equals(key)) {
@@ -79,10 +84,10 @@ public class MyHashMap {
         return size;
     }
 
-    public Object get(Object key) {
+    public V get(K key) {
         int index = getBucketIndex(key);
 
-        Node currentNode = buckets[index];
+        Node<K, V> currentNode = buckets[index];
         while (currentNode != null) {
             if (currentNode.key.equals(key)) {
                 return currentNode.value;
@@ -93,13 +98,35 @@ public class MyHashMap {
         return null;
     }
 
-    private int getBucketIndex(Object key) {
+    private int getBucketIndex(K key) {
         if (key == null) {
             return 0;
         }
 
         int hashCode = key.hashCode();
-        return hashCode % buckets.length;
+        int index = hashCode & (buckets.length - 1);
+        return index;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void resizeArray() {
+        int newCapacity = buckets.length * 2;
+        Node<K, V>[] newBuckets = new Node[newCapacity];
+
+        for (Node<K, V> bucket : buckets) {
+            Node<K, V> currentNode = bucket;
+            while (currentNode != null) {
+                int newIndex = getBucketIndex(currentNode.key);
+
+                Node<K, V> newNode = new Node<>(currentNode.key, currentNode.value);
+                newNode.next = newBuckets[newIndex];
+                newBuckets[newIndex] = newNode;
+
+                currentNode = currentNode.next;
+            }
+        }
+
+        buckets = newBuckets;
     }
 }
 
